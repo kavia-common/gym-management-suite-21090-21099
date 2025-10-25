@@ -1,0 +1,4 @@
+{
+    "command": "npm run test",
+    "working_directory": "/home/kavia/workspace/code-generation/gym-management-suite-21090-21099/gym_manager_frontend"
+}
