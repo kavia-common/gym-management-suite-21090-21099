@@ -6,8 +6,20 @@ import Loader from '../components/common/Loader';
 /**
  * BootLoader simplified for auth-disabled mode.
  * Immediately mounts the RouterProvider; no auth initialization.
+ * Includes a development guard to avoid double router creation/mount.
  */
 export default function BootLoader() {
+  // Dev-only guard: track router creation to detect duplicates
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-underscore-dangle
+    window.__gm_router_creations = (window.__gm_router_creations || 0) + 1;
+    if (window.__gm_router_creations > 1) {
+      // eslint-disable-next-line no-console
+      console.warn('[BootLoader] Multiple Router instances were created. Ensure only one <RouterProvider /> is mounted.');
+    }
+  }
+
   const router = useMemo(() => createBrowserRouter(routes), []);
-  return <RouterProvider router={router} fallbackElement={<Loader text="Routing..." />} />;
+
+  return <RouterProvider router={router} fallbackElement={<Loader label="Routing..." />} />;
 }
