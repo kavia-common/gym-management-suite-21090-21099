@@ -11,9 +11,9 @@ import { useProfile } from "../../hooks/useProfile";
 export default function Sidebar() {
   const location = useLocation();
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
-  const { data: profile } = useProfile(true);
+  const { data: profile, loading } = useProfile();
 
-  // Determine role and visibility
+  // Determine role and visibility, default to member
   const role = profile?.role || "member"; // 'admin' | 'trainer' | 'member'
   const baseItems = [
     { key: "dashboard", label: "Dashboard", emoji: "📊", roles: ["admin", "trainer", "member"] },
@@ -103,6 +103,7 @@ export default function Sidebar() {
                 borderBottom: "1px solid var(--color-border)",
                 borderRadius: 0,
                 padding: "12px 16px",
+                opacity: loading ? 0.7 : 1,
               }}
             >
               <span style={{ fontSize: 18 }}>{item.emoji}</span>

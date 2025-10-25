@@ -18,7 +18,7 @@ import { useProfile } from "../../hooks/useProfile";
  * - My Membership info (placeholder)
  */
 export default function MemberPortal() {
-  const { data: profile, loading: loadingProfile } = useProfile(true);
+  const { data: profile, loading: loadingProfile } = useProfile();
 
   // Load classes and bookings scoped to the current member if available.
   // Assuming classes and bookings tables can be filtered by member_id or email; as placeholders we just show lists.

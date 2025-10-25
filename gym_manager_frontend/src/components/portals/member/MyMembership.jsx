@@ -9,7 +9,7 @@ import { useProfile } from "../../../hooks/useProfile";
  * MyMembership shows the member's membership plan and status.
  */
 export default function MyMembership() {
-  const { data: profile, loading, error } = useProfile(true);
+  const { data: profile, loading, error } = useProfile();
 
   const plan = profile?.plan_name || "Standard";
   const status = profile?.membership_status || "active";
@@ -18,7 +18,7 @@ export default function MyMembership() {
   return (
     <Card title="My Membership" action={<Button variant="secondary">Update Payment (Placeholder)</Button>}>
       {loading && <div className="text-muted">Loading membership…</div>}
-      {error && <div className="text-muted" style={{ color: "var(--color-error)" }}>{error}</div>}
+      {error && <div className="text-muted" style={{ color: "var(--color-error)" }}>{String(error)}</div>}
       {!loading && !error && (
         <div className="row">
           <div className="col">

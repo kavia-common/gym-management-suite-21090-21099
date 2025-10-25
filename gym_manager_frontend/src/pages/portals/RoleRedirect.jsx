@@ -8,9 +8,9 @@ import { useProfile } from '../../hooks/useProfile';
  */
 export default function RoleRedirect() {
   const navigate = useNavigate();
-  // Access profile via hook (no-op in auth-disabled mode); not used for redirect.
+  // Access profile via hook (stable shape); not used for redirect.
   // eslint-disable-next-line no-unused-vars
-  const profile = useProfile();
+  const { data: _profile } = useProfile();
 
   useEffect(() => {
     navigate('/', { replace: true });

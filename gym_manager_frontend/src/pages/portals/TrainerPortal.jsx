@@ -17,7 +17,7 @@ import { useProfile } from "../../hooks/useProfile";
  * - Attendance List (bookings for today's classes, mark attended)
  */
 export default function TrainerPortal() {
-  const { data: profile, loading: loadingProfile } = useProfile(true);
+  const { data: profile, loading: loadingProfile } = useProfile();
   // For now just load lists; filtering to trainer_id can be added once available.
   const classes = useClasses({ pageSize: 10, orderBy: "start_time", ascending: true });
   const bookings = useBookings({ pageSize: 10, orderBy: "created_at", ascending: false });

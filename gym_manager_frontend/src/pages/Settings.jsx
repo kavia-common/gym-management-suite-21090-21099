@@ -7,7 +7,7 @@ import Loader from "../components/common/Loader";
 import { useProfile } from "../hooks/useProfile";
 
 export default function Settings() {
-  const { data: profile, loading, error } = useProfile(true);
+  const { data: profile, loading, error } = useProfile();
 
   return (
     <Shell>
@@ -25,10 +25,10 @@ export default function Settings() {
 
         <Card title="My Profile (placeholder)">
           {loading && <Loader label="Loading profile..." />}
-          {error && <div className="text-muted" style={{ color: "var(--color-error)" }}>{error}</div>}
+          {error && <div className="text-muted" style={{ color: "var(--color-error)" }}>{String(error)}</div>}
           {!loading && !error && (
             <div className="text-muted">
-              {profile ? `Profile loaded for id: ${profile.id}` : "No profile found or not configured."}
+              {profile ? `Profile: ${profile.full_name || 'Guest'} ${profile.email ? `(${profile.email})` : ''}` : "No profile found or not configured."}
             </div>
           )}
         </Card>
