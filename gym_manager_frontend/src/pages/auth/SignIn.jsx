@@ -1,58 +1,43 @@
-import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../routes";
-import Card from "../../components/common/Card";
-import Input from "../../components/common/Input";
-import Button from "../../components/common/Button";
+import React, { useState } from 'react';
+import { supabase } from '../../lib/supabaseClient';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
+import { useToast } from '../../components/common/ToastProvider';
 
 export default function SignIn() {
-  const [email, setEmail] = useState("");
-  const [pwd, setPwd] = useState("");
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const { signInWithPassword } = useAuth();
-  const nav = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const redirect = params.get("redirect") || "/";
+  const { showToast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
-    setError("");
     setSubmitting(true);
-    try {
-      const { error: signInError } = await signInWithPassword(email, pwd);
-      if (signInError) {
-        setError(signInError.message || "Unable to sign in. Please check your credentials.");
-      } else {
-        try {
-          nav(redirect, { replace: true });
-        } catch (e) {
-          // Fallback if navigation fails
-          window.location.assign(redirect || "/");
-        }
-      }
-    } catch (err) {
-      setError(err.message || "Unexpected error during sign in.");
-    } finally {
-      setSubmitting(false);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setSubmitting(false);
+    if (error) {
+      showToast(error.message || 'Failed to sign in', 'error');
+      return;
     }
+    const from = location.state?.from || '/';
+    navigate(from, { replace: true });
   }
 
   return (
-    <div className="container" style={{ padding: 24, maxWidth: 440 }}>
-      <Card title="Sign in to Gym Manager">
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
-          <Input id="email" label="Email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" required />
-          <Input id="password" label="Password" type="password" value={pwd} onChange={(e)=>setPwd(e.target.value)} placeholder="••••••••" required />
-          {error && <div className="text-muted" style={{ color: "var(--color-error)" }}>{error}</div>}
-          <Button type="submit" disabled={submitting}>{submitting ? "Signing in..." : "Sign In"}</Button>
-        </form>
-        <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between" }}>
-          <Link to="/auth/forgot-password">Forgot password?</Link>
-          <Link to="/auth/sign-up">Create account</Link>
-        </div>
-      </Card>
+    <div style={{ padding: 24 }}>
+      <h1>Sign In</h1>
+      <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12, maxWidth: 360 }}>
+        <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
+        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+        <Button type="submit" disabled={submitting}>{submitting ? 'Signing in...' : 'Sign In'}</Button>
+      </form>
+      <div style={{ marginTop: 12, display: 'flex', gap: 12 }}>
+        <Link to="/auth/forgot-password">Forgot password?</Link>
+        <Link to="/auth/sign-up">Create account</Link>
+      </div>
     </div>
   );
 }

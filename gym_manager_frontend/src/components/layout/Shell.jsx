@@ -1,19 +1,21 @@
-import React from "react";
-import Sidebar from "./Sidebar";
-import Topbar from "./Topbar";
+import React from 'react';
+import Sidebar from './Sidebar';
+import Topbar from './Topbar';
+import { Outlet } from 'react-router-dom';
 
 /**
- * PUBLIC_INTERFACE
- * Application shell providing sidebar, topbar and content area.
+ * Shell is the main layout wrapper for protected routes.
+ * Contains sidebar, topbar, and renders nested route content via Outlet.
  */
-export default function Shell({ children }) {
+// PUBLIC_INTERFACE
+export default function Shell() {
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="app-shell">
       <Sidebar />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div className="app-content">
         <Topbar />
-        <main className="container" style={{ padding: 16, display: "grid", gap: 16 }}>
-          {children}
+        <main>
+          <Outlet />
         </main>
       </div>
     </div>
