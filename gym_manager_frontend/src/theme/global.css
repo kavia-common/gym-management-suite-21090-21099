@@ -92,6 +92,25 @@ a:hover {
 .col { flex: 1 1 0; }
 .hidden { display: none !important; }
 
+/* Application shell layout */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* helps prevent overflow with sticky topbar */
+}
+
+.app-content > main {
+  flex: 1;
+  padding-bottom: var(--space-6);
+}
+
 /* Inputs base */
 .input-base {
   width: 100%;
