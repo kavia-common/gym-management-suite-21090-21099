@@ -34,6 +34,7 @@ export function useAuth() {
  * Fixes:
  * - Ensure we eagerly fetch supabase.auth.getSession() on mount if store hasn't resolved yet.
  * - Always clear loading state so UI doesn't get stuck on "Checking authentication…".
+ * - Clean up store/watchers on unmount.
  */
 export function AuthProvider({ children }) {
   // Use local state to preserve context shape; hydrate from the auth store
@@ -53,7 +54,8 @@ export function AuthProvider({ children }) {
     );
 
     // Ensure watcher is started
-    useAuthStore.getState().initAuthWatcher();
+    const store = useAuthStore.getState();
+    store.initAuthWatcher();
 
     // Seed initial state synchronously from store
     const s = useAuthStore.getState();
@@ -90,6 +92,12 @@ export function AuthProvider({ children }) {
       mounted = false;
       clearTimeout(timeout);
       unsubStore?.();
+      // Clean up auth watcher
+      try {
+        useAuthStore.getState().cleanupAuthWatcher?.();
+      } catch (_) {
+        // ignore
+      }
     };
   }, []);
 

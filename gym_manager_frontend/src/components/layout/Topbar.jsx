@@ -8,13 +8,12 @@ import { useUIStore } from "../../store/uiStore";
  * Topbar with search, notifications and user menu placeholder.
  */
 export default function Topbar() {
-  const { isAuthenticated, signOut } = useAuth();
+  const { isAuthenticated, signOut, loading } = useAuth();
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
 
   async function handleSignOut() {
+    if (loading) return; // avoid sign-out during transient loading states
     await signOut();
-    // Optionally refresh to clear any cached state
-    // window.location.href = "/auth/sign-in";
   }
 
   return (

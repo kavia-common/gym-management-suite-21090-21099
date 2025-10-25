@@ -12,11 +12,7 @@ export const useAuthStore = create((set, get) => {
   async function fetchProfile(userId) {
     try {
       if (!userId) return null;
-      // Placeholder: you can wire to your "profiles" table later.
-      // Example:
-      // const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
-      // if (error) throw error;
-      // return data;
+      // Placeholder: wire to your "profiles" table later.
       return null;
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -27,31 +23,45 @@ export const useAuthStore = create((set, get) => {
 
   // Initialize auth subscription once per store instance
   let subscribed = false;
+  let unsubscribeAuth = null;
+
   const ensureSubscribed = () => {
     if (subscribed) return;
     subscribed = true;
 
-    // Initial session load
-    supabase.auth.getSession().then(async ({ data, error }) => {
-      if (error) {
-        // eslint-disable-next-line no-console
-        console.error("Auth getSession error:", error);
-      }
-      const session = data?.session ?? null;
-      const user = session?.user ?? null;
-      const profile = user ? await fetchProfile(user.id) : null;
-      set({ session, user, profile, isAuthenticated: !!user, loading: false });
-    });
+    // Optimistically mark as loading while we fetch the session
+    set({ loading: true });
 
-    // Listen for auth state changes
+    // Initial session load (await/then to ensure loading=false clears reliably)
+    supabase.auth
+      .getSession()
+      .then(async ({ data, error }) => {
+        if (error) {
+          // eslint-disable-next-line no-console
+          console.error("Auth getSession error:", error);
+        }
+        const session = data?.session ?? null;
+        const user = session?.user ?? null;
+        const profile = user ? await fetchProfile(user.id) : null;
+        set({ session, user, profile, isAuthenticated: !!user, loading: false });
+      })
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.error("Auth getSession exception:", e);
+        set({ session: null, user: null, profile: null, isAuthenticated: false, loading: false });
+      });
+
+    // Listen for auth state changes and update state accordingly
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       const user = newSession?.user ?? null;
       const profile = user ? await fetchProfile(user.id) : null;
       set({ session: newSession, user, profile, isAuthenticated: !!user, loading: false });
     });
 
+    unsubscribeAuth = () => listener.subscription?.unsubscribe?.();
+
     // Store unsubscribe to allow explicit cleanup if ever needed
-    set({ _unsubscribe: () => listener.subscription?.unsubscribe?.() });
+    set({ _unsubscribe: unsubscribeAuth });
   };
 
   // Exposed auth actions backed by Supabase
@@ -68,6 +78,14 @@ export const useAuthStore = create((set, get) => {
     initAuthWatcher: () => {
       /** Starts the Supabase auth watcher and initializes the store with current session/user. */
       ensureSubscribed();
+    },
+
+    // PUBLIC_INTERFACE
+    cleanupAuthWatcher: () => {
+      /** Unsubscribe Supabase auth listener if initialized. */
+      const unsub = get()._unsubscribe;
+      if (typeof unsub === "function") unsub();
+      set({ _unsubscribe: null });
     },
 
     // PUBLIC_INTERFACE
@@ -105,7 +123,7 @@ export const useAuthStore = create((set, get) => {
       /** Sign out current user via Supabase. */
       const { error } = await supabase.auth.signOut();
       if (!error) {
-        set({ session: null, user: null, profile: null, isAuthenticated: false });
+        set({ session: null, user: null, profile: null, isAuthenticated: false, loading: false });
       }
       return { error };
     },
