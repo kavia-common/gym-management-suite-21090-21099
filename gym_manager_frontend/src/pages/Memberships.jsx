@@ -9,13 +9,15 @@ import Input from "../components/common/Input";
 import Select from "../components/common/Select";
 import Modal from "../components/common/Modal";
 import { useMembers } from "../hooks/useMembers";
+import { useToast } from "../components/common/ToastProvider";
 
 export default function Memberships() {
-  const { data, loading, error, page, setPage, pageSize, total, refresh, create, update } = useMembers({
+  const { data, loading, error, page, setPage, pageSize, total, refresh, create, update, remove } = useMembers({
     pageSize: 10,
     orderBy: "created_at",
     ascending: false,
   });
+  const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
   const filtered = useMemo(() => {
@@ -53,14 +55,27 @@ export default function Memberships() {
     try {
       if (editing?.id) {
         await update(editing.id, form);
+        showToast("Membership updated.", "success");
       } else {
         await create(form);
+        showToast("Membership created.", "success");
       }
       setOpen(false);
     } catch (e) {
-      setFormError(e?.message || "Failed to save membership.");
+      const msg = e?.message || "Failed to save membership.";
+      setFormError(msg);
+      showToast(msg, "danger");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleDelete(row) {
+    try {
+      await remove(row.id);
+      showToast("Membership removed.", "success");
+    } catch (e) {
+      showToast(e?.message || "Failed to remove membership.", "danger");
     }
   }
 
@@ -78,6 +93,7 @@ export default function Memberships() {
       cell: (r) => (
         <div style={{ display: "inline-flex", gap: 8 }}>
           <Button variant="ghost" onClick={() => openEdit(r)}>Edit</Button>
+          <Button variant="ghost" onClick={() => handleDelete(r)}>Remove</Button>
         </div>
       ),
     },
@@ -96,7 +112,7 @@ export default function Memberships() {
                 <Input id="member-search" placeholder="Search members or plans…" value={search} onChange={(e)=>setSearch(e.target.value)} />
               </div>
               <Button variant="secondary" onClick={openCreate}>+ New</Button>
-              <Button variant="ghost" onClick={refresh}>↻ Refresh</Button>
+              <Button variant="ghost" onClick={() => { refresh(); showToast("Refreshed.", "info"); }}>↻ Refresh</Button>
             </div>
           }
         >

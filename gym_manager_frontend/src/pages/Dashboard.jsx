@@ -8,12 +8,14 @@ import Button from "../components/common/Button";
 import { useMembers } from "../hooks/useMembers";
 import { useClasses } from "../hooks/useClasses";
 import { useBookings } from "../hooks/useBookings";
+import { useToast } from "../components/common/ToastProvider";
 
 export default function Dashboard() {
   // Pull light-weight counts using existing hooks (read-only summaries).
   const members = useMembers({ pageSize: 5 });
   const classes = useClasses({ pageSize: 5, orderBy: "start_time", ascending: true });
   const bookings = useBookings({ pageSize: 5, orderBy: "created_at", ascending: false });
+  const { showToast } = useToast();
 
   const totalMembers = members.total ?? (Array.isArray(members.data) ? members.data.length : 0);
   const upcomingClasses = classes.total ?? (Array.isArray(classes.data) ? classes.data.length : 0);
@@ -51,7 +53,7 @@ export default function Dashboard() {
 
         <div className="row">
           <div className="col">
-            <Card title="Upcoming Classes" action={<Button variant="ghost" onClick={classes.refresh}>↻ Refresh</Button>}>
+            <Card title="Upcoming Classes" action={<Button variant="ghost" onClick={() => { classes.refresh(); showToast("Refreshed.", "info"); }}>↻ Refresh</Button>}>
               <Table
                 columns={upcomingColumns}
                 data={Array.isArray(classes.data) ? classes.data : []}
@@ -63,7 +65,7 @@ export default function Dashboard() {
             </Card>
           </div>
           <div className="col">
-            <Card title="Recent Bookings" action={<Button variant="ghost" onClick={bookings.refresh}>↻ Refresh</Button>}>
+            <Card title="Recent Bookings" action={<Button variant="ghost" onClick={() => { bookings.refresh(); showToast("Refreshed.", "info"); }}>↻ Refresh</Button>}>
               <Table
                 columns={bookingsColumns}
                 data={Array.isArray(bookings.data) ? bookings.data : []}

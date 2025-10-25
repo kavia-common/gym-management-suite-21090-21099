@@ -10,14 +10,16 @@ import Select from "../components/common/Select";
 import Modal from "../components/common/Modal";
 import { useClasses } from "../hooks/useClasses";
 import { useTrainers } from "../hooks/useTrainers";
+import { useToast } from "../components/common/ToastProvider";
 
 export default function Classes() {
-  const { data, loading, error, page, setPage, pageSize, total, refresh, create, update } = useClasses({
+  const { data, loading, error, page, setPage, pageSize, total, refresh, create, update, remove } = useClasses({
     pageSize: 10,
     orderBy: "start_time",
     ascending: true,
   });
   const trainers = useTrainers({ pageSize: 50 });
+  const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
   const filtered = useMemo(() => {
@@ -61,14 +63,27 @@ export default function Classes() {
     try {
       if (editing?.id) {
         await update(editing.id, form);
+        showToast("Class updated.", "success");
       } else {
         await create(form);
+        showToast("Class created.", "success");
       }
       setOpen(false);
     } catch (e) {
-      setFormError(e?.message || "Failed to save class.");
+      const msg = e?.message || "Failed to save class.";
+      setFormError(msg);
+      showToast(msg, "danger");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleDelete(row) {
+    try {
+      await remove(row.id);
+      showToast("Class removed.", "success");
+    } catch (e) {
+      showToast(e?.message || "Failed to remove class.", "danger");
     }
   }
 
@@ -83,6 +98,7 @@ export default function Classes() {
       cell: (r) => (
         <div style={{ display: "inline-flex", gap: 8 }}>
           <Button variant="ghost" onClick={() => openEdit(r)}>Edit</Button>
+          <Button variant="ghost" onClick={() => handleDelete(r)}>Remove</Button>
         </div>
       ),
     },
@@ -101,7 +117,7 @@ export default function Classes() {
                 <Input id="class-search" placeholder="Search classes or trainers…" value={search} onChange={(e)=>setSearch(e.target.value)} />
               </div>
               <Button variant="secondary" onClick={openCreate}>+ New</Button>
-              <Button variant="ghost" onClick={refresh}>↻ Refresh</Button>
+              <Button variant="ghost" onClick={() => { refresh(); showToast("Refreshed.", "info"); }}>↻ Refresh</Button>
             </div>
           }
         >

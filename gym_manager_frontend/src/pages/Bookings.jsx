@@ -9,13 +9,15 @@ import Input from "../components/common/Input";
 import Select from "../components/common/Select";
 import Modal from "../components/common/Modal";
 import { useBookings } from "../hooks/useBookings";
+import { useToast } from "../components/common/ToastProvider";
 
 export default function Bookings() {
-  const { data, loading, error, page, setPage, pageSize, total, refresh, create, update } = useBookings({
+  const { data, loading, error, page, setPage, pageSize, total, refresh, create, update, remove } = useBookings({
     pageSize: 10,
     orderBy: "created_at",
     ascending: false,
   });
+  const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
   const filtered = useMemo(() => {
@@ -58,14 +60,27 @@ export default function Bookings() {
     try {
       if (editing?.id) {
         await update(editing.id, form);
+        showToast("Booking updated.", "success");
       } else {
         await create(form);
+        showToast("Booking created.", "success");
       }
       setOpen(false);
     } catch (e) {
-      setFormError(e?.message || "Failed to save booking.");
+      const msg = e?.message || "Failed to save booking.";
+      setFormError(msg);
+      showToast(msg, "danger");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleDelete(row) {
+    try {
+      await remove(row.id);
+      showToast("Booking removed.", "success");
+    } catch (e) {
+      showToast(e?.message || "Failed to remove booking.", "danger");
     }
   }
 
@@ -80,6 +95,7 @@ export default function Bookings() {
       cell: (r) => (
         <div style={{ display: "inline-flex", gap: 8 }}>
           <Button variant="ghost" onClick={() => openEdit(r)}>Edit</Button>
+          <Button variant="ghost" onClick={() => handleDelete(r)}>Remove</Button>
         </div>
       ),
     },
@@ -96,7 +112,7 @@ export default function Bookings() {
               <Input id="booking-search" placeholder="Search members or classes…" value={search} onChange={(e)=>setSearch(e.target.value)} />
             </div>
             <Button variant="secondary" onClick={openCreate}>+ New</Button>
-            <Button variant="ghost" onClick={refresh}>↻ Refresh</Button>
+            <Button variant="ghost" onClick={() => { refresh(); showToast("Refreshed.", "info"); }}>↻ Refresh</Button>
           </div>
         }>
           {loading && <Loader label="Loading bookings..." />}

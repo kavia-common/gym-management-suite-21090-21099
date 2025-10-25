@@ -8,13 +8,15 @@ import Input from "../components/common/Input";
 import Select from "../components/common/Select";
 import Modal from "../components/common/Modal";
 import { useTrainers } from "../hooks/useTrainers";
+import { useToast } from "../components/common/ToastProvider";
 
 export default function Trainers() {
-  const { data, loading, error, page, setPage, pageSize, total, refresh, create, update } = useTrainers({
+  const { data, loading, error, page, setPage, pageSize, total, refresh, create, update, remove } = useTrainers({
     pageSize: 10,
     orderBy: "name",
     ascending: true,
   });
+  const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
   const filtered = useMemo(() => {
@@ -50,14 +52,27 @@ export default function Trainers() {
     try {
       if (editing?.id) {
         await update(editing.id, form);
+        showToast("Trainer updated.", "success");
       } else {
         await create(form);
+        showToast("Trainer created.", "success");
       }
       setOpen(false);
     } catch (e) {
-      setFormError(e?.message || "Failed to save trainer.");
+      const msg = e?.message || "Failed to save trainer.";
+      setFormError(msg);
+      showToast(msg, "danger");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleDelete(row) {
+    try {
+      await remove(row.id);
+      showToast("Trainer removed.", "success");
+    } catch (e) {
+      showToast(e?.message || "Failed to remove trainer.", "danger");
     }
   }
 
@@ -71,6 +86,7 @@ export default function Trainers() {
       cell: (r) => (
         <div style={{ display: "inline-flex", gap: 8 }}>
           <Button variant="ghost" onClick={() => openEdit(r)}>Edit</Button>
+          <Button variant="ghost" onClick={() => handleDelete(r)}>Remove</Button>
         </div>
       ),
     },
@@ -87,7 +103,7 @@ export default function Trainers() {
               <Input id="trainer-search" placeholder="Search trainers…" value={search} onChange={(e)=>setSearch(e.target.value)} />
             </div>
             <Button variant="secondary" onClick={openCreate}>+ New</Button>
-            <Button variant="ghost" onClick={refresh}>↻ Refresh</Button>
+            <Button variant="ghost" onClick={() => { refresh(); showToast("Refreshed.", "info"); }}>↻ Refresh</Button>
           </div>
         }>
           {loading && <Loader label="Loading trainers..." />}
