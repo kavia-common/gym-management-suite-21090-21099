@@ -1,6 +1,7 @@
 import React from "react";
 import Button from "../common/Button";
 import { useAuth } from "../../routes";
+import { useUIStore } from "../../store/uiStore";
 
 /**
  * PUBLIC_INTERFACE
@@ -8,6 +9,7 @@ import { useAuth } from "../../routes";
  */
 export default function Topbar() {
   const { isAuthenticated, signOut } = useAuth();
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
 
   async function handleSignOut() {
     await signOut();
@@ -38,6 +40,7 @@ export default function Topbar() {
         <div className="hide-mobile" style={{ fontWeight: 700, fontSize: "1.1rem" }}>
           Dashboard
         </div>
+        <Button variant="ghost" ariaLabel="Toggle navigation" onClick={toggleSidebar}>☰</Button>
         <div style={{ flex: 1 }}>
           <input
             className="input-base"

@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "../../assets/logo.svg";
 import Badge from "../common/Badge";
+import { useUIStore } from "../../store/uiStore";
 
 /**
  * PUBLIC_INTERFACE
@@ -9,6 +10,7 @@ import Badge from "../common/Badge";
  */
 export default function Sidebar() {
   const location = useLocation();
+  const sidebarOpen = useUIStore((s) => s.sidebarOpen);
   const items = [
     { key: "dashboard", label: "Dashboard", emoji: "📊" },
     { key: "memberships", label: "Memberships", emoji: "🎟️" },
@@ -22,8 +24,9 @@ export default function Sidebar() {
     <aside
       aria-label="Sidebar"
       style={{
-        width: 260,
-        minWidth: 220,
+        width: sidebarOpen ? 260 : 0,
+        minWidth: sidebarOpen ? 220 : 0,
+        overflow: "hidden",
         background: "var(--color-surface)",
         borderRight: "1px solid var(--color-border)",
         display: "flex",
@@ -31,6 +34,7 @@ export default function Sidebar() {
         height: "100vh",
         position: "sticky",
         top: 0,
+        transition: "width var(--transition), min-width var(--transition)",
       }}
     >
       <div

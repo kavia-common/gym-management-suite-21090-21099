@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import { useAuthStore } from "../store/authStore";
 
 // Shape of the auth context
 // PUBLIC_INTERFACE
@@ -31,107 +32,40 @@ export function useAuth() {
  * Subscribes to onAuthStateChange and keeps user/session in sync.
  */
 export function AuthProvider({ children }) {
+  // Use local state to preserve context shape; hydrate from the auth store
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize session on mount
+  // Initialize Zustand auth watcher and mirror its state into React context state
   useEffect(() => {
-    let isMounted = true;
-
-    async function init() {
-      try {
-        const {
-          data: { session: currentSession },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (error) {
-          // eslint-disable-next-line no-console
-          console.error("Failed to get session", error);
-        }
-
-        if (isMounted) {
-          setSession(currentSession);
-          setUser(currentSession?.user ?? null);
-          setLoading(false);
-        }
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error("Error initializing session", e);
-        if (isMounted) setLoading(false);
+    const unsubStore = useAuthStore.subscribe(
+      (s) => ({ session: s.session, user: s.user, loading: s.loading }),
+      (next, _prev) => {
+        setSession(next.session);
+        setUser(next.user);
+        setLoading(next.loading);
       }
-    }
+    );
+    // Ensure watcher is started
+    useAuthStore.getState().initAuthWatcher();
 
-    init();
+    // Seed initial state synchronously
+    const s = useAuthStore.getState();
+    setSession(s.session);
+    setUser(s.user);
+    setLoading(s.loading);
 
-    // Listen for further auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
+    return () => unsubStore?.();
   }, []);
 
-  // Supabase-backed auth methods
-
-  // PUBLIC_INTERFACE
-  async function signInWithPassword(email, password) {
-    /**
-     * Signs in a user with email and password.
-     * Returns { data, error } from Supabase.
-     */
-    return supabase.auth.signInWithPassword({ email, password });
-  }
-
-  // PUBLIC_INTERFACE
-  async function signUpWithPassword(email, password, emailRedirectTo) {
-    /**
-     * Signs up a user with email and password and sends a verification email.
-     * emailRedirectTo should be SITE_URL/auth/reset-password or similar page.
-     */
-    return supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo,
-      },
-    });
-  }
-
-  // PUBLIC_INTERFACE
-  async function sendPasswordReset(email, redirectTo) {
-    /**
-     * Sends a password reset email.
-     * redirectTo should be SITE_URL/auth/reset-password.
-     */
-    return supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
-    });
-  }
-
-  // PUBLIC_INTERFACE
-  async function updatePassword(newPassword) {
-    /**
-     * Updates the user's password when on the reset-password page after being redirected from email link.
-     */
-    return supabase.auth.updateUser({ password: newPassword });
-  }
-
-  // PUBLIC_INTERFACE
-  async function signOut() {
-    /**
-     * Signs out the current user.
-     */
-    const { error } = await supabase.auth.signOut();
-    return { error };
-  }
+  // Supabase-backed auth methods, routed via the store to keep a single source of truth
+  const signInWithPassword = (email, password) => useAuthStore.getState().signInWithPassword(email, password);
+  const signUpWithPassword = (email, password, emailRedirectTo) =>
+    useAuthStore.getState().signUpWithPassword(email, password, emailRedirectTo);
+  const sendPasswordReset = (email, redirectTo) => useAuthStore.getState().sendPasswordReset(email, redirectTo);
+  const updatePassword = (newPassword) => useAuthStore.getState().updatePassword(newPassword);
+  const signOut = () => useAuthStore.getState().signOut();
 
   const value = useMemo(
     () => ({

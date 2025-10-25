@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, ProtectedRoute } from './routes';
+import './store/authStore'; // ensure store module is evaluated early
 
 import Dashboard from './pages/Dashboard';
 import Memberships from './pages/Memberships';
