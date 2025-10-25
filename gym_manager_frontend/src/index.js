@@ -6,8 +6,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { ToastProvider } from './components/common/ToastProvider';
 import BootLoader from './boot/BootLoader';
 
-// Enable React Router v7 future flags globally to reduce deprecation noise
-// These are read by RouterProvider internally.
+// Optional React Router future flags to reduce warnings; safe no-op if unused
 window.__reactRouterFuture = {
   v7_fetcherPersist: true,
   v7_relativeSplatPath: true,

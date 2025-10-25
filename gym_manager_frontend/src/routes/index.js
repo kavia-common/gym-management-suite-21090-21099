@@ -9,13 +9,7 @@ import Settings from '../pages/Settings';
 import RoleRedirect from '../pages/portals/RoleRedirect';
 import MemberPortal from '../pages/portals/MemberPortal';
 import TrainerPortal from '../pages/portals/TrainerPortal';
-
-/**
- * Minimal health-check element that always renders "OK".
- */
-function Health() {
-  return <div style={{ padding: 16, fontFamily: 'sans-serif' }}>OK</div>;
-}
+import Health from '../pages/Health';
 
 /**
  * PUBLIC_INTERFACE
@@ -24,29 +18,30 @@ function Health() {
  */
 const routes = [
   {
-    id: 'root',
+    id: 'route-root',
     path: '/',
-    // Note: Children include a Shell layout branch and a public health route.
     children: [
+      // Public health route at /health
       {
-        id: 'health',
+        id: 'route-health',
         path: 'health',
         element: <Health />,
       },
+      // Application shell with nested module routes
       {
-        id: 'app-shell',
+        id: 'route-shell',
         element: <Shell />,
         children: [
-          { id: 'dashboard', index: true, element: <Dashboard /> },
-          { id: 'memberships', path: 'memberships', element: <Memberships /> },
-          { id: 'classes', path: 'classes', element: <Classes /> },
-          { id: 'trainers', path: 'trainers', element: <Trainers /> },
-          { id: 'bookings', path: 'bookings', element: <Bookings /> },
-          { id: 'settings', path: 'settings', element: <Settings /> },
+          { id: 'route-dashboard', index: true, element: <Dashboard /> },
+          { id: 'route-memberships', path: 'memberships', element: <Memberships /> },
+          { id: 'route-classes', path: 'classes', element: <Classes /> },
+          { id: 'route-trainers', path: 'trainers', element: <Trainers /> },
+          { id: 'route-bookings', path: 'bookings', element: <Bookings /> },
+          { id: 'route-settings', path: 'settings', element: <Settings /> },
           // Portals
-          { id: 'portal-redirect', path: 'portal', element: <RoleRedirect /> },
-          { id: 'portal-member', path: 'portal/member', element: <MemberPortal /> },
-          { id: 'portal-trainer', path: 'portal/trainer', element: <TrainerPortal /> },
+          { id: 'route-portal-redirect', path: 'portal', element: <RoleRedirect /> },
+          { id: 'route-portal-member', path: 'portal/member', element: <MemberPortal /> },
+          { id: 'route-portal-trainer', path: 'portal/trainer', element: <TrainerPortal /> },
         ],
       },
     ],
