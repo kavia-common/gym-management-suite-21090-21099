@@ -16,6 +16,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test --watchAll=false",
     "test:ci": "CI=true react-scripts test --watchAll=false",
+    "lint": "eslint . --ext .js,.jsx,.mjs --max-warnings=0",
+    "format": "prettier --write \"src/**/*.{js,jsx,css,md}\"",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

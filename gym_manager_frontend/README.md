@@ -1,47 +1,36 @@
 # Gym Manager Frontend (Ocean Professional)
 
-This project is a modern, lightweight React application for the Gym Manager suite with a clean, responsive UI and minimal dependencies.
+A modern, lightweight React app for the Gym Manager suite. Clean, responsive UI with minimal deps, Supabase auth/data integration, routing, state via Zustand, and feature-flagged modules.
 
-## Key Capabilities
-- Lightweight React + vanilla CSS (no heavy UI frameworks)
-- Dashboard-centric layout with side navigation
-- Modules: Dashboard, Memberships, Classes, Trainers, Bookings, Settings, Portals (Member, Trainer)
-- Supabase integration scaffolded (auth, data hooks)
-- Feature flag system for phased delivery
+## Quick start
 
-## Getting Started
+1) Install dependencies
+- From this folder:
+  - npm install
 
-In the project directory, you can run:
+2) Configure environment
+- Copy .env.example to .env and fill in your Supabase project credentials:
+  - REACT_APP_SUPABASE_URL
+  - REACT_APP_SUPABASE_KEY
 
-### `npm start`
-Runs the app in development mode. Open http://localhost:3000 in your browser.
+3) Run the app
+- npm start
+- Open http://localhost:3000
 
-### `npm test`
-Runs the tests in CI (non-interactive) mode.
+4) Run tests
+- npm test
+- For CI mode: npm run test:ci
 
-### `npm run build`
-Builds the app for production to the `build` folder.
+5) Build for production
+- npm run build
 
-## Phased Delivery Plan
+## Environment variables
 
-Use feature flags to ship iteratively while keeping a single code line. Suggested phases:
+Required:
+- REACT_APP_SUPABASE_URL
+- REACT_APP_SUPABASE_KEY
 
-1. Phase 1: Core shell and auth
-   - dashboard
-2. Phase 2: Core admin modules
-   - memberships, classes
-3. Phase 3: Directory and scheduling
-   - trainers, bookings
-4. Phase 4: Self-service portals
-   - memberPortal, trainerPortal
-5. Phase 5: Enhancements, analytics, program builder (future)
-
-You can enable/disable modules per environment using environment variables at build time.
-
-## Feature Flags
-
-Feature flags are defined in `src/config/features.js`. Each flag can be toggled via environment variables:
-
+Optional feature flags (override defaults from src/config/features.js):
 - REACT_APP_FEATURE_DASHBOARD
 - REACT_APP_FEATURE_MEMBERSHIPS
 - REACT_APP_FEATURE_CLASSES
@@ -50,65 +39,84 @@ Feature flags are defined in `src/config/features.js`. Each flag can be toggled 
 - REACT_APP_FEATURE_MEMBERPORTAL
 - REACT_APP_FEATURE_TRAINERPORTAL
 
-Accepted values: true, false, 1, 0, yes, no, on, off (case-insensitive).
+Accepted: true, false, 1, 0, yes, no, on, off (case-insensitive).
 
-Defaults (can be changed in `features.js`):
-- dashboard: true
-- memberships: true
-- classes: true
-- trainers: true
-- bookings: true
-- memberPortal: true
-- trainerPortal: true
+Example:
+- REACT_APP_FEATURE_TRAINERS=false REACT_APP_FEATURE_MEMBERPORTAL=false npm start
 
-### Using feature flags in code
+## Scripts
 
-Import the flags and conditionally render modules:
+- npm start
+  - Start development server (CRA)
+- npm run build
+  - Build production bundle into build/
+- npm test
+  - Run tests in non-watch mode
+- npm run test:ci
+  - Run tests in CI=true non-interactive mode
+- npm run lint
+  - Lint JS/JSX with ESLint (fails on warnings)
+- npm run format
+  - Format source files with Prettier
 
-```js
-import { features } from '../config/features';
+Note: You may need to install Prettier and ESLint globally or as dev dependencies depending on your workflow.
 
-// Example in a component:
-{features.memberships && <Memberships />}
-```
+## Project structure (module map)
 
-For routing or navigation, you can check flags before including routes or links:
+- src/
+  - App.js: Router and route wiring
+  - routes/
+    - index.js: AuthProvider, useAuth, ProtectedRoute
+  - lib/
+    - supabaseClient.js: Supabase singleton (uses REACT_APP_SUPABASE_URL, REACT_APP_SUPABASE_KEY)
+  - store/ (Zustand)
+    - authStore.js: auth/session state + Supabase-backed actions
+    - uiStore.js: UI state (sidebar, theme, toasts)
+    - membershipsStore.js, classesStore.js, trainersStore.js, bookingsStore.js: scaffolds
+  - data/ (Data access layer for Supabase tables)
+    - membershipsApi.js, classesApi.js, trainersApi.js, bookingsApi.js, profilesApi.js
+    - __tests__/membershipsApi.test.js
+  - hooks/ (Feature/Entity hooks)
+    - useMembers.js, useClasses.js, useTrainers.js, useBookings.js, useProfile.js
+  - components/
+    - common/: Badge, Button, Card, DataTable, Input, Loader, Modal, Select, Snackbar, StatsGrid, Table
+    - layout/: Shell, Sidebar, Topbar
+    - portals/member/: MyMembership, MyBookings, MySchedule
+    - portals/trainer/: MyClasses, AttendanceList
+  - pages/
+    - Dashboard.jsx, Memberships.jsx, Classes.jsx, Trainers.jsx, Bookings.jsx, Settings.jsx
+    - auth/: SignIn.jsx, SignUp.jsx, ForgotPassword.jsx, ResetPassword.jsx
+    - portals/: MemberPortal.jsx, TrainerPortal.jsx, RoleRedirect.jsx
+  - config/
+    - features.js: Feature flags with env overrides
+  - theme/
+    - colors.js, global.css
+  - __tests__/
+    - auth.test.jsx, routing.test.jsx
+  - testUtils/
+    - renderWithProviders.jsx, supabaseMock.js
+  - index.js, index.css, App.css, setupTests.js
 
-```js
-import { features } from '../config/features';
-// e.g., only push an item if features.bookings is true
-```
+## Feature flags usage
 
-### Example: toggling flags for a build
+Import and conditionally render:
+- import { features } from '../config/features';
+- Example: {features.memberships && <Memberships />}
 
-On Unix-like shells:
-```
-REACT_APP_FEATURE_TRAINERS=false REACT_APP_FEATURE_MEMBERPORTAL=false npm start
-```
+## Notes
 
-Or add to a `.env` file (not committed to source control):
-```
-REACT_APP_FEATURE_TRAINERS=false
-REACT_APP_FEATURE_MEMBERPORTAL=false
-```
+- CRA only exposes env vars prefixed with REACT_APP_.
+- Do not commit your .env. Use .env.example as a template.
 
-Note: CRA only exposes env vars prefixed with `REACT_APP_`.
+## Phased delivery (suggested)
 
-## Environment Variables
+1) Phase 1: Core shell and auth (dashboard)
+2) Phase 2: Admin modules (memberships, classes)
+3) Phase 3: Directory/scheduling (trainers, bookings)
+4) Phase 4: Self-service portals (member, trainer)
+5) Phase 5: Enhancements, analytics, program builder (future)
 
-Supabase client requires:
-- REACT_APP_SUPABASE_URL
-- REACT_APP_SUPABASE_KEY
-
-Set these in your environment or `.env` file before running the app.
-
-## Customization
-
-- Colors and theme variables: `src/theme/global.css`
-- Common components: `src/components/common/*`
-- Layout shell: `src/components/layout/*`
-
-## Learn More
+## Learn more
 
 - React: https://reactjs.org/
-- CRA docs (code splitting, bundle analysis, PWA, advanced config, deployment, troubleshooting) are available on the official site.
+- Create React App docs: https://create-react-app.dev
