@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Badge from "../common/Badge";
 import { useUIStore } from "../../store/uiStore";
+import { useProfile } from "../../hooks/useProfile";
 
 /**
  * PUBLIC_INTERFACE
@@ -10,14 +11,27 @@ import { useUIStore } from "../../store/uiStore";
 export default function Sidebar() {
   const location = useLocation();
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
-  const items = [
-    { key: "dashboard", label: "Dashboard", emoji: "📊" },
-    { key: "memberships", label: "Memberships", emoji: "🎟️" },
-    { key: "classes", label: "Classes", emoji: "🏋️" },
-    { key: "trainers", label: "Trainers", emoji: "🧑‍🏫" },
-    { key: "bookings", label: "Bookings", emoji: "🗓️" },
-    { key: "settings", label: "Settings", emoji: "⚙️" },
+  const { data: profile } = useProfile(true);
+
+  // Determine role and visibility
+  const role = profile?.role || "member"; // 'admin' | 'trainer' | 'member'
+  const baseItems = [
+    { key: "dashboard", label: "Dashboard", emoji: "📊", roles: ["admin", "trainer", "member"] },
+    { key: "memberships", label: "Memberships", emoji: "🎟️", roles: ["admin"] },
+    { key: "classes", label: "Classes", emoji: "🏋️", roles: ["admin", "trainer"] },
+    { key: "trainers", label: "Trainers", emoji: "🧑‍🏫", roles: ["admin"] },
+    { key: "bookings", label: "Bookings", emoji: "🗓️", roles: ["admin"] },
+    { key: "settings", label: "Settings", emoji: "⚙️", roles: ["admin", "trainer", "member"] },
   ];
+  const portalItems = [
+    { key: "portal/member", label: "Member Portal", emoji: "🧑‍💼", roles: ["member"] },
+    { key: "portal/trainer", label: "Trainer Portal", emoji: "🏅", roles: ["trainer"] },
+  ];
+
+  const items = useMemo(() => {
+    const allowed = (it) => it.roles.includes(role);
+    return [...baseItems.filter(allowed), ...portalItems.filter(allowed)];
+  }, [role]);
 
   return (
     <aside
@@ -68,7 +82,7 @@ export default function Sidebar() {
           </div>
         </div>
         <div style={{ marginLeft: "auto" }}>
-          <Badge tone="info">v0.1</Badge>
+          <Badge tone="info">v0.2</Badge>
         </div>
       </div>
       <nav aria-label="Primary">

@@ -10,6 +10,9 @@ import Classes from './pages/Classes';
 import Trainers from './pages/Trainers';
 import Bookings from './pages/Bookings';
 import Settings from './pages/Settings';
+import MemberPortal from './pages/portals/MemberPortal';
+import TrainerPortal from './pages/portals/TrainerPortal';
+import RoleRedirect from './pages/portals/RoleRedirect';
 
 import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
@@ -31,6 +34,9 @@ function App() {
               <Route path="/trainers" element={<Trainers />} />
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/portal/member" element={<MemberPortal />} />
+              <Route path="/portal/trainer" element={<TrainerPortal />} />
+              <Route path="/portal" element={<RoleRedirect />} />
             </Route>
 
             <Route path="/auth/sign-in" element={<SignIn />} />
