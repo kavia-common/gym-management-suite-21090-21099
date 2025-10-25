@@ -1,10 +1,20 @@
-# Auth Behavior (Temporarily Disabled)
+# Auth Behavior (Feature-flagged Optional)
 
-Authentication is currently disabled to improve preview stability.
+Authentication is disabled by default to improve preview stability, but can be enabled via a feature flag.
 
-- ProtectedRoute now always renders its children without redirects.
-- Auth-related routes `/auth/*` are not mounted in the main router.
-- The auth store is a no-op and always reports `initialized=true` and `user/session=null`.
-- Supabase client is configured for data access only; no auth listeners are attached.
+Default (auth OFF):
+- ProtectedRoute renders children without redirects (no gating).
+- Auth-related routes `/auth/*` are not mounted.
+- The auth store is a no-op; `initialized=true`, `user/session=null`.
+- useProfile returns a deterministic Guest profile.
+- Supabase client remains for data access only; no auth listeners attached.
 
-To restore authentication, revert these changes to their earlier versions and reintroduce route gating and auth pages.
+Optional (auth ON):
+- Set `REACT_APP_FEATURE_AUTH=true` (at build time) to enable the auth pathway.
+- ProtectedRoute enforces gating and redirects unauthenticated users to `/auth/sign-in?redirect=<intended>`.
+- Auth pages are mounted: `/auth/sign-in`, `/auth/sign-up`, `/auth/forgot-password`, `/auth/reset-password`.
+- useProfile fetches the current profile via `profilesApi.getCurrentProfile()`.
+
+Notes:
+- This step wires the routing and hook behavior only; it uses a minimal heuristic for "authenticated" state (window.__gm_isAuthenticated or __gm_session) until a full AuthProvider is reintroduced.
+- For a complete auth experience, add an AuthProvider that mirrors Supabase auth events and sets the session marker expected by ProtectedRoute.

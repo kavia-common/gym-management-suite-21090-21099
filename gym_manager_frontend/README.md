@@ -30,6 +30,7 @@ Feature flags can be toggled at build time using the pattern REACT_APP_FEATURE_<
 - REACT_APP_FEATURE_BOOKINGS
 - REACT_APP_FEATURE_MEMBERPORTAL
 - REACT_APP_FEATURE_TRAINERPORTAL
+- REACT_APP_FEATURE_AUTH (default false; when true, mounts /auth routes and enables real ProtectedRoute; useProfile fetches real profile)
 
 Note on preview/dev:
 - After modifying .env, you must stop and restart the dev server for changes to take effect.

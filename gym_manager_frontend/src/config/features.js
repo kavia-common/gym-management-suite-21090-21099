@@ -35,6 +35,8 @@ const defaults = {
   bookings: true,
   memberPortal: true,
   trainerPortal: true,
+  // Auth is optional and OFF by default. See docs/auth-behavior.md for usage.
+  auth: false,
 };
 
 // Helper to read an env var for a given key, following the REACT_APP_FEATURE_* convention.
@@ -52,6 +54,9 @@ export const features = {
   bookings: envFlag("bookings", defaults.bookings),
   memberPortal: envFlag("memberPortal", defaults.memberPortal),
   trainerPortal: envFlag("trainerPortal", defaults.trainerPortal),
+  // Toggle optional authentication pathway at build time:
+  // REACT_APP_FEATURE_AUTH=true
+  auth: envFlag("auth", defaults.auth),
 };
 
 // PUBLIC_INTERFACE
