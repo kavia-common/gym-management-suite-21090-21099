@@ -1,4 +1,5 @@
 import React from "react";
+import { Link, useLocation } from "react-router-dom";
 import logo from "../../assets/logo.svg";
 import Badge from "../common/Badge";
 
@@ -7,6 +8,7 @@ import Badge from "../common/Badge";
  * Sidebar navigation with modules.
  */
 export default function Sidebar() {
+  const location = useLocation();
   const items = [
     { key: "dashboard", label: "Dashboard", emoji: "📊" },
     { key: "memberships", label: "Memberships", emoji: "🎟️" },
@@ -52,30 +54,30 @@ export default function Sidebar() {
         </div>
       </div>
       <nav aria-label="Primary">
-        {items.map((item) => (
-          <button
-            key={item.key}
-            className="btn"
-            style={{
-              width: "100%",
-              justifyContent: "flex-start",
-              background: "transparent",
-              color: "var(--color-text)",
-              border: "none",
-              borderBottom: "1px solid var(--color-border)",
-              borderRadius: 0,
-              padding: "12px 16px",
-            }}
-            onClick={() => {
-              // Placeholder interaction; routing not implemented yet
-              // eslint-disable-next-line no-console
-              console.log("Navigate to", item.key);
-            }}
-          >
-            <span style={{ fontSize: 18 }}>{item.emoji}</span>
-            <span style={{ marginLeft: 10 }}>{item.label}</span>
-          </button>
-        ))}
+        {items.map((item) => {
+          const to = item.key === "dashboard" ? "/" : `/${item.key}`;
+          const active = location.pathname === to;
+          return (
+            <Link
+              key={item.key}
+              to={to}
+              className="btn"
+              style={{
+                width: "100%",
+                justifyContent: "flex-start",
+                background: active ? "rgba(37,99,235,0.08)" : "transparent",
+                color: "var(--color-text)",
+                border: "none",
+                borderBottom: "1px solid var(--color-border)",
+                borderRadius: 0,
+                padding: "12px 16px",
+              }}
+            >
+              <span style={{ fontSize: 18 }}>{item.emoji}</span>
+              <span style={{ marginLeft: 10 }}>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
       <div style={{ marginTop: "auto", padding: 16, borderTop: "1px solid var(--color-border)" }}>
         <div className="text-muted" style={{ fontSize: 12 }}>
