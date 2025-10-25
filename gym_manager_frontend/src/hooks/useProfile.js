@@ -1,40 +1,20 @@
-import { useCallback, useEffect, useState } from "react";
-import { profilesApi } from "../data/profilesApi";
+import { useEffect } from 'react';
+import { useMembershipsStore } from '../store/membershipsStore';
 
 /**
  * PUBLIC_INTERFACE
- * useProfile fetches and updates the current user's profile row (profiles table).
+ * Profile hook adjusted for auth-disabled mode.
+ * Without a user id, no profile is loaded; returns null safely.
  */
-export function useProfile(autoLoad = true) {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(!!autoLoad);
-  const [error, setError] = useState("");
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const { data, error: err } = await profilesApi.getCurrentProfile();
-      if (err) throw err;
-      setProfile(data);
-    } catch (e) {
-      setError(e?.message || "Failed to load profile.");
-      setProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const save = useCallback(async (patch) => {
-    const { data, error: err } = await profilesApi.upsertProfile(patch);
-    if (err) throw err;
-    setProfile(data);
-    return data;
-  }, []);
+export function useProfile() {
+  const { loadProfile, profile } = useMembershipsStore();
 
   useEffect(() => {
-    if (autoLoad) load();
-  }, [autoLoad, load]);
+    // auth disabled: do not auto-load a profile
+  }, [loadProfile]);
 
-  return { data: profile, loading, error, refresh: load, save };
+  return profile ?? null;
 }
+
+// Default export kept for backward compatibility in case of default imports elsewhere.
+export default useProfile;

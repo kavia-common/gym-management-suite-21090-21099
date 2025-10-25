@@ -1,25 +1,19 @@
 # Gym Manager Frontend
 
-Stabilized bootstrap and routing.
+This project is the frontend for the Gym Manager Application. It uses React and communicates with Supabase and backend services.
 
-Key changes:
-- Top-level ErrorBoundary catches render/runtime errors with a retryable fallback.
-- BootLoader validates env, initializes Supabase, resolves initial session, and then mounts the Router.
-- ProtectedRoute uses a single derived auth state (initialized, authenticated).
-- /health always renders "OK" to verify mount.
-- /debug-auth shows loading -> authed/unauthed correctly.
-- Global toast provider for notifications.
-- React Router v7 future flags enabled to reduce deprecation noise.
+Auth Temporarily Disabled
+- ProtectedRoute always renders children (no redirects).
+- Routes do not include `/auth/*` pages in the app router.
+- The auth store is a no-op; `initialized=true`, `session/user=null`.
+- Supabase client remains for data access only; no auth listeners.
+- Health route `/health` remains available.
 
-Environment variables (set in .env):
+Environment
 - REACT_APP_SUPABASE_URL
 - REACT_APP_SUPABASE_KEY
 
-Routes:
-- Public: /health, /auth/*, /debug-auth
-- Protected: /, /memberships, /classes, /trainers, /bookings, /settings, /portal/*
-
-Bootstrap:
-- index.js mounts ErrorBoundary -> ToastProvider -> BootLoader
-- BootLoader handles env validation and initial session resolution
-- RouterProvider is rendered only after initialization
+Scripts
+- npm start
+- npm test
+- npm run build

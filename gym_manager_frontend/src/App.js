@@ -1,12 +1,11 @@
 import React from 'react';
+import BootLoader from './boot/BootLoader';
 import './App.css';
 
 /**
- * App is intentionally minimal. The application is bootstrapped via BootLoader
- * which validates env, initializes Supabase, resolves the initial session,
- * and mounts the RouterProvider. This file remains for compatibility.
+ * App mounts BootLoader which mounts the Router.
+ * Auth is disabled; no additional providers required here.
  */
-// PUBLIC_INTERFACE
 export default function App() {
-  return null;
+  return <BootLoader />;
 }

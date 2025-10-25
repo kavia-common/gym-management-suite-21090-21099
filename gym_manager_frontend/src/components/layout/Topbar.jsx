@@ -1,35 +1,14 @@
 import React from 'react';
 import Button from '../common/Button';
 import { useUIStore } from '../../store/uiStore';
-import { useAuthStore } from '../../store/authStore';
-import { supabase } from '../../lib/supabaseClient';
-import { useToast } from '../common/ToastProvider';
 
 /**
- * PUBLIC_INTERFACE
- * Topbar with search, notifications and user menu placeholder.
+ * Topbar simplified for auth-disabled mode.
+ * Shows static "Guest" and a no-op sign out button.
  */
 export default function Topbar() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
-  const initialized = useAuthStore((s) => s.initialized);
-  const session = useAuthStore((s) => s.session);
-  const setSession = useAuthStore((s) => s.setSession);
-  const { showToast } = useToast();
-
-  const isAuthenticated = Boolean(session);
-  const loading = !initialized;
-
-  async function handleSignOut() {
-    if (loading) return; // avoid sign-out during transient loading states
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      showToast(error.message || 'Failed to sign out', 'error');
-      return;
-    }
-    // Ensure store reflects sign-out immediately
-    setSession(null);
-    showToast('Signed out', 'info');
-  }
+  const signOut = () => {}; // no-op
 
   return (
     <header
@@ -39,7 +18,7 @@ export default function Topbar() {
         top: 0,
         zIndex: 10,
         borderBottom: '1px solid var(--color-border)',
-        background: 'var(--color-surface)', // ensure solid background over gradient on scroll
+        background: 'var(--color-surface)',
       }}
     >
       <div
@@ -61,11 +40,6 @@ export default function Topbar() {
           <input className="input-base" placeholder="Search members, classes, trainers..." aria-label="Search" />
         </div>
         <Button variant="ghost" ariaLabel="Notifications">🔔</Button>
-        {isAuthenticated && (
-          <Button variant="ghost" ariaLabel="Sign out" onClick={handleSignOut}>
-            ⎋ Sign out
-          </Button>
-        )}
         <div
           style={{
             display: 'inline-flex',
@@ -80,8 +54,11 @@ export default function Topbar() {
           aria-label="User menu"
         >
           <span role="img" aria-label="user">🧑</span>
-          <span className="hide-mobile">Admin</span>
+          <span className="hide-mobile">Guest</span>
         </div>
+        <Button variant="ghost" ariaLabel="Sign out" onClick={signOut}>
+          ⎋ Sign out
+        </Button>
       </div>
     </header>
   );
