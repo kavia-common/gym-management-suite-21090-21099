@@ -81,7 +81,7 @@ export const useAuthStore = create((set, get) => {
     user: null,
     profile: null,
     isAuthenticated: false,
-    loading: true,
+    loading: true, // also used as "isInitializing" during INITIAL_SESSION
     _unsubscribe: null,
     _lastEvent: null,
 
@@ -175,4 +175,13 @@ export function getAuthState() {
   /** Returns current snapshot of auth state. */
   const { user, session, profile, isAuthenticated, loading } = useAuthStore.getState();
   return { user, session, profile, isAuthenticated, loading };
+}
+
+/**
+ * PUBLIC_INTERFACE
+ * isInitializing returns whether the auth store is still resolving the initial session.
+ */
+export function isInitializing() {
+  const { loading } = useAuthStore.getState();
+  return !!loading;
 }

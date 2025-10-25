@@ -26,7 +26,7 @@ function App() {
   return (
     <div className="app-root">
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Dashboard />} />
