@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
+import { getSupabase } from "../lib/supabaseClient";
 import { useAuthStore } from "../store/authStore";
+
+const supabase = getSupabase();
 
 // Shape of the auth context
 // PUBLIC_INTERFACE

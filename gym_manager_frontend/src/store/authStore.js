@@ -1,5 +1,12 @@
 import { create } from "zustand";
-import { supabase } from "../lib/supabaseClient";
+import { getSupabase } from "../lib/supabaseClient";
+
+/* eslint-disable no-console */
+const supabase = getSupabase();
+
+// Ensure only a single subscription across hot-reloads/environments
+let moduleSubscribed = false;
+let moduleUnsubscribe = null;
 
 /**
  * PUBLIC_INTERFACE
@@ -7,38 +14,44 @@ import { supabase } from "../lib/supabaseClient";
  * It subscribes to Supabase auth changes. Other parts of the app can select needed slices.
  */
 export const useAuthStore = create((set, get) => {
-  // Internal helper to fetch minimal profile if your DB has a "profiles" table.
-  // This is a scaffold; safe to leave as no-op if table not present yet.
   async function fetchProfile(userId) {
     try {
       if (!userId) return null;
-      // Placeholder: wire to your "profiles" table later.
+      // Placeholder for future profile fetch from DB.
       return null;
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn("Profile fetch skipped or failed:", err?.message);
       return null;
     }
   }
 
-  // Initialize auth subscription once per store instance
-  let subscribed = false;
-  let unsubscribeAuth = null;
+  async function resolveInitialSessionWithTimeout(ms = 5000) {
+    // Race getSession against timeout to avoid infinite loading in network stalls
+    const timeout = new Promise((resolve) =>
+      setTimeout(() => resolve({ data: { session: null }, error: new Error("getSession timeout") }), ms)
+    );
+    try {
+      const result = await Promise.race([supabase.auth.getSession(), timeout]);
+      return result;
+    } catch (e) {
+      return { data: { session: null }, error: e };
+    }
+  }
 
   const ensureSubscribed = () => {
-    if (subscribed) return;
-    subscribed = true;
-
-    // Optimistically mark as loading while we fetch the session
+    if (moduleSubscribed) {
+      // Keep store in sync with any late subscribers
+      set((s) => ({ ...s }));
+      return;
+    }
+    moduleSubscribed = true;
     set({ loading: true });
 
-    // Initial session load (await/then to ensure loading=false clears reliably)
-    supabase.auth
-      .getSession()
+    // Initial session resolution with timeout safeguard
+    resolveInitialSessionWithTimeout()
       .then(async ({ data, error }) => {
         if (error) {
-          // eslint-disable-next-line no-console
-          console.error("Auth getSession error:", error);
+          console.warn("Auth getSession issue:", error?.message || error);
         }
         const session = data?.session ?? null;
         const user = session?.user ?? null;
@@ -46,25 +59,22 @@ export const useAuthStore = create((set, get) => {
         set({ session, user, profile, isAuthenticated: !!user, loading: false });
       })
       .catch((e) => {
-        // eslint-disable-next-line no-console
-        console.error("Auth getSession exception:", e);
+        console.error("Auth getSession exception:", e?.message || e);
         set({ session: null, user: null, profile: null, isAuthenticated: false, loading: false });
       });
 
-    // Listen for auth state changes and update state accordingly
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    // onAuthStateChange listener
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.info("[Auth] onAuthStateChange:", event);
       const user = newSession?.user ?? null;
       const profile = user ? await fetchProfile(user.id) : null;
-      set({ session: newSession, user, profile, isAuthenticated: !!user, loading: false });
+      set({ session: newSession, user, profile, isAuthenticated: !!user, loading: false, _lastEvent: event });
     });
 
-    unsubscribeAuth = () => listener.subscription?.unsubscribe?.();
-
-    // Store unsubscribe to allow explicit cleanup if ever needed
-    set({ _unsubscribe: unsubscribeAuth });
+    moduleUnsubscribe = () => listener.subscription?.unsubscribe?.();
+    set({ _unsubscribe: moduleUnsubscribe });
   };
 
-  // Exposed auth actions backed by Supabase
   return {
     // State
     session: null,
@@ -73,6 +83,7 @@ export const useAuthStore = create((set, get) => {
     isAuthenticated: false,
     loading: true,
     _unsubscribe: null,
+    _lastEvent: null,
 
     // PUBLIC_INTERFACE
     initAuthWatcher: () => {
@@ -83,49 +94,75 @@ export const useAuthStore = create((set, get) => {
     // PUBLIC_INTERFACE
     cleanupAuthWatcher: () => {
       /** Unsubscribe Supabase auth listener if initialized. */
-      const unsub = get()._unsubscribe;
-      if (typeof unsub === "function") unsub();
+      try {
+        moduleUnsubscribe?.();
+      } catch (_) {}
+      moduleUnsubscribe = null;
+      moduleSubscribed = false;
       set({ _unsubscribe: null });
     },
 
     // PUBLIC_INTERFACE
     signInWithPassword: async (email, password) => {
       /** Sign in with email/password via Supabase and let the listener update state. */
-      return supabase.auth.signInWithPassword({ email, password });
+      try {
+        return await supabase.auth.signInWithPassword({ email, password });
+      } catch (e) {
+        console.error("signInWithPassword error:", e?.message || e);
+        return { data: null, error: e };
+      }
     },
 
     // PUBLIC_INTERFACE
     signUpWithPassword: async (email, password, emailRedirectTo) => {
       /** Sign up with email/password via Supabase; sends verification email. */
-      return supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo,
-        },
-      });
+      try {
+        return await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo },
+        });
+      } catch (e) {
+        console.error("signUpWithPassword error:", e?.message || e);
+        return { data: null, error: e };
+      }
     },
 
     // PUBLIC_INTERFACE
     sendPasswordReset: async (email, redirectTo) => {
       /** Send password reset email via Supabase. */
-      return supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      try {
+        return await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      } catch (e) {
+        console.error("sendPasswordReset error:", e?.message || e);
+        return { data: null, error: e };
+      }
     },
 
     // PUBLIC_INTERFACE
     updatePassword: async (newPassword) => {
       /** Update current user's password via Supabase. */
-      return supabase.auth.updateUser({ password: newPassword });
+      try {
+        return await supabase.auth.updateUser({ password: newPassword });
+      } catch (e) {
+        console.error("updatePassword error:", e?.message || e);
+        return { data: null, error: e };
+      }
     },
 
     // PUBLIC_INTERFACE
     signOut: async () => {
       /** Sign out current user via Supabase. */
-      const { error } = await supabase.auth.signOut();
-      if (!error) {
-        set({ session: null, user: null, profile: null, isAuthenticated: false, loading: false });
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (!error) {
+          set({ session: null, user: null, profile: null, isAuthenticated: false, loading: false, _lastEvent: "SIGNED_OUT" });
+        }
+        return { error };
+      } catch (e) {
+        console.error("signOut error:", e?.message || e);
+        return { error: e };
       }
-      return { error };
     },
   };
 });

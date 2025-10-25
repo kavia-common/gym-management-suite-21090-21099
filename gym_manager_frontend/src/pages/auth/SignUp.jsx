@@ -20,7 +20,12 @@ export default function SignUp() {
     setInfo("");
     setSubmitting(true);
     try {
-      const origin = window.location.origin;
+      let origin = "/";
+      try {
+        origin = window.location.origin || "/";
+      } catch (_) {
+        origin = "/";
+      }
       const emailRedirectTo = `${origin}/auth/reset-password`;
       const { error: signUpError } = await signUpWithPassword(email, pwd, emailRedirectTo);
       if (signUpError) {

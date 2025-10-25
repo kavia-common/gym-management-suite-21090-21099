@@ -18,6 +18,7 @@ import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import DebugAuth from './pages/DebugAuth';
 
 // PUBLIC_INTERFACE
 function App() {
@@ -43,6 +44,7 @@ function App() {
             <Route path="/auth/sign-up" element={<SignUp />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/debug-auth" element={<DebugAuth />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

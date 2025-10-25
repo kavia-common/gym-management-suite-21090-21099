@@ -25,7 +25,12 @@ export default function SignIn() {
       if (signInError) {
         setError(signInError.message || "Unable to sign in. Please check your credentials.");
       } else {
-        nav(redirect, { replace: true });
+        try {
+          nav(redirect, { replace: true });
+        } catch (e) {
+          // Fallback if navigation fails
+          window.location.assign(redirect || "/");
+        }
       }
     } catch (err) {
       setError(err.message || "Unexpected error during sign in.");
