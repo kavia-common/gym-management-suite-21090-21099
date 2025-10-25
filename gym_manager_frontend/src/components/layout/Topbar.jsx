@@ -1,11 +1,20 @@
 import React from "react";
 import Button from "../common/Button";
+import { useAuth } from "../../routes";
 
 /**
  * PUBLIC_INTERFACE
  * Topbar with search, notifications and user menu placeholder.
  */
 export default function Topbar() {
+  const { isAuthenticated, signOut } = useAuth();
+
+  async function handleSignOut() {
+    await signOut();
+    // Optionally refresh to clear any cached state
+    // window.location.href = "/auth/sign-in";
+  }
+
   return (
     <header
       className="app-gradient"
@@ -37,6 +46,11 @@ export default function Topbar() {
           />
         </div>
         <Button variant="ghost" ariaLabel="Notifications">🔔</Button>
+        {isAuthenticated && (
+          <Button variant="ghost" ariaLabel="Sign out" onClick={handleSignOut}>
+            ⎋ Sign out
+          </Button>
+        )}
         <div
           style={{
             display: "inline-flex",
