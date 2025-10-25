@@ -35,7 +35,7 @@ export function ToastProvider({ children }) {
       <Snackbar
         open={open}
         message={message}
-        variant={variant}
+        tone={variant}
         duration={duration}
         onClose={() => setOpen(false)}
       />
