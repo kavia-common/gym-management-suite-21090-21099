@@ -1,6 +1,5 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "../../assets/logo.svg";
 import Badge from "../common/Badge";
 import { useUIStore } from "../../store/uiStore";
 
@@ -46,7 +45,22 @@ export default function Sidebar() {
           borderBottom: "1px solid var(--color-border)",
         }}
       >
-        <img src={logo} width={28} height={28} alt="Gym Manager logo" />
+        <div
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 8,
+            background: "var(--color-primary)",
+            color: "#fff",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: 800,
+          }}
+          aria-label="Gym Manager"
+        >
+          GM
+        </div>
         <div>
           <div style={{ fontWeight: 800 }}>Gym Manager</div>
           <div className="text-muted" style={{ fontSize: 12 }}>
